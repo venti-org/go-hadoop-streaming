@@ -12,25 +12,29 @@ func SizeofBits[T any]() int {
 	return int(unsafe.Sizeof(empty) * 8)
 }
 
-func ReadLines(r io.Reader, callback func(string, error) bool) {
-	readLines(r, callback, false)
-}
-
-func ReadLinesAndTrim(r io.Reader, callback func(string, error) bool) {
-	readLines(r, callback, true)
-}
-
-func readLines(r io.Reader, callback func(string, error) bool, trimSpace bool) {
+func ReadLines(r io.Reader, callback func([]byte, error) bool) {
 	reader := bufio.NewReader(r)
 	for {
-		line, err := reader.ReadString('\n')
+		data, err := reader.ReadBytes('\n')
+		dataLen := len(data)
+		if dataLen != 0 && data[dataLen-1] == '\n' {
+			data = data[:dataLen-1]
+			dataLen = len(data)
+			if dataLen != 0 && data[dataLen-1] == '\r' {
+				data = data[:dataLen-1]
+			}
+		}
+		stop := false
 		if err == io.EOF {
+			stop = true
+			if len(data) == 0 {
+				break
+			}
+		}
+		if !callback(data, err) {
 			break
 		}
-		if trimSpace {
-			line = strings.TrimSpace(line)
-		}
-		if !callback(line, err) {
+		if stop {
 			break
 		}
 	}

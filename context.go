@@ -96,6 +96,10 @@ func (ctx *Context[KEYIN, VALUEIN, KEYOUT, VALUEOUT]) readline() ([]byte, error)
 	dataLen := len(data)
 	if dataLen != 0 && data[dataLen-1] == '\n' {
 		data = data[:dataLen-1]
+		dataLen = len(data)
+		if dataLen != 0 && data[dataLen-1] == '\r' {
+			data = data[:dataLen-1]
+		}
 	}
 	if err != nil {
 		if err == io.EOF {
