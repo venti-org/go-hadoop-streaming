@@ -131,10 +131,24 @@ func (ctx *Context[KEYIN, VALUEIN, KEYOUT, VALUEOUT]) readKeyValue() (KEYIN, VAL
 		value, err = ctx.valueInSerializer.Deserialize(data)
 	} else {
 		items := bytes.SplitN(data, []byte{'\t'}, 2)
-		if key, err = ctx.keyInSerializer.Deserialize(items[0]); err != nil {
-			return key, value, err
+		var keyBytes []byte
+		keyFlag := false
+		var valueBytes []byte
+		if len(items) == 2 {
+			keyBytes = items[0]
+			keyFlag = true
+			valueBytes = items[1]
+		} else if len(items) == 1 {
+			valueBytes = items[0]
+		} else {
+			return key, value, fmt.Errorf("invalid data: items_length=%v", len(items))
 		}
-		value, err = ctx.valueInSerializer.Deserialize(items[1])
+		if keyFlag {
+			if key, err = ctx.keyInSerializer.Deserialize(keyBytes); err != nil {
+				return key, value, err
+			}
+		}
+		value, err = ctx.valueInSerializer.Deserialize(valueBytes)
 	}
 	return key, value, err
 }
