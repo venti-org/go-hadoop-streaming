@@ -1,8 +1,12 @@
 package hadoop_streaming
 
 import (
-	"flag"
 	"fmt"
+)
+
+const (
+	MODE_MAPPER  = "mapper"
+	MODE_REDUCER = "reducer"
 )
 
 type Runner = func() error
@@ -26,24 +30,20 @@ func (app *Application) WithReducer(reducer Runner) *Application {
 	return app
 }
 
-func (app *Application) Run() {
-	reducerFlag := flag.Bool("reducer", false, "")
-	flag.Parse()
-	var err error
-	if *reducerFlag {
-		if app.reducer == nil {
-			err = fmt.Errorf("reducer is nil")
-		} else {
-			err = app.reducer()
-		}
-	} else {
+func (app *Application) Run(mode string) error {
+	switch mode {
+	case MODE_MAPPER:
 		if app.mapper == nil {
-			err = fmt.Errorf("mappper is nil")
+			return fmt.Errorf("mappper is nil")
 		} else {
-			err = app.mapper()
+			return app.mapper()
+		}
+	case MODE_REDUCER:
+		if app.reducer == nil {
+			return fmt.Errorf("reducer is nil")
+		} else {
+			return app.reducer()
 		}
 	}
-	if err != nil {
-		println(err.Error())
-	}
+	return fmt.Errorf("unknown mode: %s", mode)
 }

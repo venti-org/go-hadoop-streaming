@@ -1,8 +1,7 @@
 all: clean
 	mkdir -p output/examples
-	mkdir -p output/readlines
 	go build -o output/examples/simple ./examples/simple
-	go build -o output/readlines/readlines ./examples/readlines
+	go build -o output/examples/readlines ./examples/readlines
 
 clean:
 	rm -rf output

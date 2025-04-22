@@ -93,16 +93,21 @@ func main() {
 	containKey := flag.Bool("key", false, "")
 	typ := flag.String("type", "string", "bool,string,int,uint,float64,complex64,map,array")
 	skipErr := flag.Bool("skip-err", false, "")
+	reducer := flag.Bool("reducer", false, "")
 
-	configCreator := func() *Config {
-		return &Config{
-			SkipErr: *skipErr,
-		}
+	flag.Parse()
+
+	config := &Config{
+		SkipErr: *skipErr,
+	}
+
+	mode := mr.MODE_MAPPER
+	if *reducer {
+		mode = mr.MODE_REDUCER
 	}
 
 	app := mr.NewApplication()
-	app.WithMapper(func() error {
-		config := configCreator()
+	err := app.WithMapper(func() error {
 		if *containKey {
 			switch *typ {
 			case "bool":
@@ -184,7 +189,6 @@ func main() {
 		}
 		return fmt.Errorf("not support type %v", *typ)
 	}).WithReducer(func() error {
-		config := configCreator()
 		if *containKey {
 			switch *typ {
 			case "bool":
@@ -265,5 +269,9 @@ func main() {
 			}
 		}
 		return fmt.Errorf("not support type %v", *typ)
-	}).Run()
+	}).Run(mode)
+
+	if err != nil {
+		println(err.Error())
+	}
 }
